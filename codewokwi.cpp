@@ -8,7 +8,6 @@
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 const char* mqtt_server = "test.mosquitto.org"; 
-const char* mqtt_client_id = "ESP32Client";
 
 const char* topic_nivel_agua = "iot/reservatorio/nivel";
 const char* topic_rele = "iot/reservatorio/rele";
@@ -55,19 +54,14 @@ void setup() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.println();
-  Serial.print("Mensagem recebida [");
-  Serial.print(topic);
-  Serial.print("] Mensagem: ");
   String msg;
 
   for (int i = 0; i < length; i++) {
     msg += (char)payload[i];
   }
-  Serial.println(msg);
 
   if (String(topic) == "topic_status") {
-    Serial.print("Status:");
+    Serial.print("Status: ");
     if (msg == "A") {
       modoManual = false;
       Serial.println("Modo AUTO ativado");
@@ -78,7 +72,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   if (String(topic) == "topic_rele" && modoManual) {
-    Serial.print("Status:");
+    Serial.print("Status: ");
     if (msg == "1") {
       Serial.println("Válvula ligada manualmente");
       digitalWrite(RELAY_PIN, HIGH);
@@ -98,12 +92,12 @@ long readUltrasonicDistance(int triggerPin, int echoPin) {
   return pulseIn(echoPin, HIGH) * 0.034 / 2;
 }
 
+
 void loop() {
   if (!client.connected()) {
     reconnect_mqtt();
   }
   client.loop();
-
 
   long distance = 73 - readUltrasonicDistance(TRIGGER_PIN, ECHO_PIN);
   Serial.print("Nível de água: ");

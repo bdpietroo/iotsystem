@@ -25,14 +25,14 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nConectado ao WiFi!");
+  Serial.println("\nConectado ao WiFi!\n");
 }
 
 void reconnect_mqtt() {
   while (!client.connected()) {
     Serial.print("Conectando ao MQTT...");
     if (client.connect("espClient")) { 
-      Serial.println("Conectado ao MQTT");
+      Serial.println("Conectado ao MQTT\n");
       client.subscribe("topic_status");
       client.subscribe("topic_rele");
     } else {
@@ -54,6 +54,7 @@ void setup() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+
   String msg;
 
   for (int i = 0; i < length; i++) {
@@ -61,26 +62,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   if (String(topic) == "topic_status") {
-    Serial.print("Status: ");
     if (msg == "A") {
       modoManual = false;
-      Serial.println("Modo AUTO ativado");
+      Serial.println("\n=== Modo automático ativado ===\n");
     } else if (msg == "M") {
       modoManual = true;
-      Serial.println("Modo MANUAL ativado");
+      Serial.println("\n=== Modo manual ativado ===\n");
     }
   }
 
   if (String(topic) == "topic_rele" && modoManual) {
-    Serial.print("Status: ");
     if (msg == "1") {
-      Serial.println("Válvula ligada manualmente");
+      Serial.println("\nVálvula ligada manualmente\n");
       digitalWrite(RELAY_PIN, HIGH);
     } else if (msg == "0") {
-      Serial.println("Válvula desligada manualmente");
+      Serial.println("\nVálvula desligada manualmente\n");
       digitalWrite(RELAY_PIN, LOW);
     }
+
   }
+
+  
 }
 
 long readUltrasonicDistance(int triggerPin, int echoPin) {
@@ -99,6 +101,7 @@ void loop() {
   }
   client.loop();
 
+
   long distance = 73 - readUltrasonicDistance(TRIGGER_PIN, ECHO_PIN);
   Serial.print("Nível de água: ");
   Serial.print(distance);
@@ -108,17 +111,16 @@ void loop() {
   snprintf(msg, 50, "%ld", distance);
   client.publish(topic_nivel_agua, msg);
 
+
   if (modoManual == false) {
     if (distance < 10) {
       digitalWrite(RELAY_PIN, HIGH);
-      client.publish(topic_rele, "Válvula ativada");
-      Serial.println("Modo AUTO: Válvula ativada");
+      Serial.println("Modo automático: Válvula ativada\n");
     } else {
       digitalWrite(RELAY_PIN, LOW);
-      client.publish(topic_rele, "Usando água da chuva");
-      Serial.println("Modo AUTO: Usando água da chuva");
+      Serial.println("Modo automático: Usando água da chuva\n");
     }
   }
 
-  delay(5000);
+  delay(10000);
 }
